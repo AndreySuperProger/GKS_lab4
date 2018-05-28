@@ -1,5 +1,4 @@
-#	Задача Джонсона о 2 станках
-#	Вариант с 3 станками
+#	л.р.4 ГКС
 #	Автор: Зволикевич А.В. ІК-51
 
 import numpy as np
@@ -112,7 +111,7 @@ def gant(rule):
 	global Q, C
 	time = 0
 	while any(comp for comp in C if comp.operation < len(comp.route)):
-		print("time = " + str(time))
+		#print("time = " + str(time))
 		for gvm in Q:
 			gvm.refresh(time)
 		#ранжировка:
@@ -122,13 +121,13 @@ def gant(rule):
 		Q = Q2 + Q1
 		######
 		for gvm in Q:
-			print("	gvm = " + str(gvm.number))
+			#print("	gvm = " + str(gvm.number))
 			if gvm.engaged == False:		#Если станок завершил обработку
-				print("	gvm not engaged")
+				#print("	gvm not engaged")
 				for comp in C:
-					print("		comp = " + str(comp.number))
+					#print("		comp = " + str(comp.number))
 					if comp.engaged == False and comp.operation < len(comp.route):
-						print("		comp not engaged")
+						#print("		comp not engaged")
 						if comp.route[comp.operation] == gvm.number:	#Если следущая операция на этой gvm, то занести в портфель
 							if any(pf.time == time for pf in gvm.Portf) == False:
 								gvm.Portf.append(Portfolio(time))
@@ -136,13 +135,57 @@ def gant(rule):
 							#Для перебора вариантов
 							#break
 							##########
-							print("		Занесено в порфель")
+							#print("		Занесено в порфель")
 					
 				#Здесь нужно выбрать деталь из портфеля согласно правилу 1
 				if (rule == 1):
 					if (any(pf.time == time for pf in gvm.Portf)):
 						chosenComp = min((comp for comp in gvm.Portf[len(gvm.Portf) - 1].Components_list), \
 							key = lambda x: x.time[x.operation])
+						#print("	chosen = " + str(chosenComp.number))
+						gvm.Portf[len(gvm.Portf) - 1].Components_list.remove(chosenComp)	#Удалить деталь из порфеля
+						gvm.WorkList.append(CompOperation(chosenComp, time))				#добавить в обработку
+						chosenComp.operation += 1
+						gvm.Comp = chosenComp
+						gvm.engaged = True
+						chosenComp.engaged = True
+						
+				#Здесь нужно выбрать деталь из портфеля согласно правилу 2
+				if (rule == 2):
+					if (any(pf.time == time for pf in gvm.Portf)):
+						#######debug
+						print("	##########debug")
+						for comp in gvm.Portf[len(gvm.Portf) - 1].Components_list:
+							print("	comp = " + str(comp.number), end = " ")
+							print("sum = " + str(sum(comp.time[i] \
+								for i in range(len(comp.time)) if i > comp.operation)))
+						print("	##########debug")
+						#######debug
+						chosenComp = max((comp for comp in gvm.Portf[len(gvm.Portf) - 1].Components_list), \
+							key = lambda x: sum(x.time[i] \
+							for i in range(len(x.time)) if i > x.operation))
+						print("	chosen = " + str(chosenComp.number))
+						gvm.Portf[len(gvm.Portf) - 1].Components_list.remove(chosenComp)	#Удалить деталь из порфеля
+						gvm.WorkList.append(CompOperation(chosenComp, time))				#добавить в обработку
+						chosenComp.operation += 1
+						gvm.Comp = chosenComp
+						gvm.engaged = True
+						chosenComp.engaged = True
+						
+				#Здесь нужно выбрать деталь из портфеля согласно правилу 4
+				if (rule == 4):
+					if (any(pf.time == time for pf in gvm.Portf)):
+						"""#######debug
+						print("	##########debug")
+						for comp in gvm.Portf[len(gvm.Portf) - 1].Components_list:
+							print("	comp = " + str(comp.number), end = " ")
+							print("sum = " + str(sum(comp.time[i] \
+								for i in range(len(comp.time)) if i > comp.operation)))
+						print("	##########debug")
+						#######debug"""
+						chosenComp = min((comp for comp in gvm.Portf[len(gvm.Portf) - 1].Components_list), \
+							key = lambda x: sum(x.time[i] \
+							for i in range(len(x.time)) if i > x.operation))
 						#print("	chosen = " + str(chosenComp.number))
 						gvm.Portf[len(gvm.Portf) - 1].Components_list.remove(chosenComp)	#Удалить деталь из порфеля
 						gvm.WorkList.append(CompOperation(chosenComp, time))				#добавить в обработку
@@ -179,10 +222,10 @@ def gant(rule):
 							else:	#Иначе -- ищем по трудоёмкости портфеля
 								chosenGvm = min((g for g in nextGvmNotIdle), \
 									key = lambda x: x.Portf[len(x.Portf) - 1].getJobWorth())
-							print("	chosenGvm = " + str(chosenGvm.number))
+							#print("	chosenGvm = " + str(chosenGvm.number))
 							chosenComp = next(comp for comp in cl \
 								if comp.route[comp.operation + 1] == chosenGvm.number)
-						print("	chosen = " + str(chosenComp.number))
+						#print("	chosen = " + str(chosenComp.number))
 						gvm.Portf[len(gvm.Portf) - 1].Components_list.remove(chosenComp)	#Удалить деталь из порфеля
 						gvm.WorkList.append(CompOperation(chosenComp, time))				#добавить в обработку
 						chosenComp.operation += 1
@@ -339,7 +382,7 @@ def c3_6():
 
 
 ##############################test#####################################	
-#Детали:
+"""#Детали:
 C = [
 	Component(1, [2, 3, 3]),
 	Component(2, [5, 2, 4]),
@@ -359,60 +402,82 @@ Q = [
 	GVM(3)
 	]
 	
-gant(3)
-diagrammOut()
+gant(4)
+diagrammOut()"""
 ##############################test#####################################
-"""
+
 ############################lab4###########################
 n = int(input("Введіть кількість обладнання: "))
 m = int(input("Введіть кількість деталей: "))
-T = [[0 for j in range(n)] for i in range(m)]
+rule = int(input("Введіть номер правила:"))
+TO = [[0 for j in range(n)] for i in range(m)]
+TM = [[0 for j in range(n)] for i in range(m)]
+
+print("Введіть матрицю технологічних маршрутів:")
+for j in range(n):
+	for i in range(m):
+		TM[i][j] = int(input("TM[" + str(i + 1) + "][" + str(j + 1) + "] = "))
+
 print("Введіть матрицю тривалостей обробки:")
 for j in range(n):
 	for i in range(m):
-		T[i][j] = int(input("T[" + str(i + 1) + "]["  +str(j + 1) + "] = "))
+		TO[i][j] = int(input("TO[" + str(i + 1) + "][" + str(j + 1) + "] = "))
 
 #Детали
 C = []	
 for i in range(m):
 	Tj = []
 	for j in range(n):
-		Tj.append(T[i][j])
+		Tj.append(TO[i][j])
 	C.append(Component(i + 1, Tj))
 
 #ГВМ
 Q = [GVM(j + 1) for j in range(n)]
 
-for comp in C:
-	comp.route = [j + 1 for j in range(len(Q))]
+"""for comp in C:
+	comp.route = [j + 1 for j in range(len(Q))]"""
+for i in range(m):
+	C[i].route = TM[i]
 
-gant()
+gant(rule)
 
 
 print("Кількість обладнання: " + str(n))
 print("Кількість деталей: " + str(m))
 print("Загальний час обробки всіх деталей: " + str(c1_1()))
-print("Критерій 1.1: " + str(c1_1()))
+"""print("Критерій 1.1: " + str(c1_1()))
 print("Критерій 2.1: " + str(c2_1()))
 print("Критерій 2.3: " + str(c2_3()))
 print("Критерій 2.6: " + str(c2_6()))
 print("Критерій 3.1: " + str(c3_1()))
 print("Критерій 3.4: " + str(c3_4()))
-print("Критерій 3.6: " + str(c3_6()))
+print("Критерій 3.6: " + str(c3_6()))"""
 
-P = [[0 for i in range(m)] for j in range(n)]
+RR = [[0 for i in range(m)] for j in range(n)]
 for j in range(n):
-	for i in range(m):
-		for co in Q[j].WorkList:
-			if co.comp.number == i + 1:
-				P[j][i] = co.startTime
-				break
+	for i in range(len(Q[j].WorkList)):
+		RR[j][i] = Q[j].WorkList[i].startTime
 
-print("Матриця P:")				
+print("Матриця RR:")				
 for j in range(n):
-	print(P[j])
+	print("ГВМ" + str(j + 1) + " " + str(RR[j]))
+
+	
+"""RR = [[0 for j in range(n)] for i in range(m)]
+for comp in C:
+	for j in range(n):
+		r = comp.route[j]
+		for gvm in Q:
+			if gvm.number == r:
+				i = comp.number - 1
+				RR[i][j] = gvm.WorkList[i].startTime
+				
+
+print("Матриця RR:")				
+for i in range(m):
+	print("Деталь" + str(i + 1) + " " + str(RR[j]))"""
 	
 diagrammOut()
 
-############################lab3###########################
-"""
+############################lab4###########################
+
